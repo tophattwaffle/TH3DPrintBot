@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using TH3DPrintBot.src.Services;
 using TH3DPrintBot.Services;
 
 namespace TH3DPrintBot.Commands
@@ -18,12 +19,14 @@ namespace TH3DPrintBot.Commands
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
         private readonly IHelpService _help;
+        private readonly DataService _dataService;
 
-        public HelpModule(DiscordSocketClient client, CommandService commands, IHelpService help)
+        public HelpModule(DiscordSocketClient client, CommandService commands, IHelpService help, DataService dataService)
         {
             _client = client;
             _commands = commands;
             _help = help;
+            _dataService = dataService;
         }
 
         [Command("Help")]
@@ -40,8 +43,8 @@ namespace TH3DPrintBot.Commands
                 Color = new Color(47, 111, 146),
                 Title = "\u2753 Command Help",
                 Description =
-                    $"A command can be invoked by prefixing its name with `{Program.COMMAND_PREFIX}`. To see usage " +
-                    $"details for a command, use `{Program.COMMAND_PREFIX}help [command]`.\n\nThe following is a " +
+                    $"A command can be invoked by prefixing its name with `{_dataService.RootSettings.program_settings.commandPrefix}`. To see usage " +
+                    $"details for a command, use `{_dataService.RootSettings.program_settings.commandPrefix}help [command]`.\n\nThe following is a " +
                     "list of available commands:"
             };
 

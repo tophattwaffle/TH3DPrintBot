@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using TH3DPrintBot.src.Services;
 
 namespace TH3DPrintBot.Commands
 {
@@ -53,7 +54,7 @@ namespace TH3DPrintBot.Commands
         [Command("RoleMe")]
         [Summary("Toggles a user role to show what printers they have, or what skills they have.")]
         [Remarks(
-            "Toggleable roles typically display possession of a skill, such as 3D modelling or level design. To send multiple " +
+            "Toggleable roles typically display possession of a skill or printer, such as 3D modeling or CR10. To send multiple " +
             "roles in one invocation, separate the names with a space. Invoking without any parameters displays a list of " +
             "all toggleable roles.")]
         [RequireContext(ContextType.Guild)]
@@ -63,14 +64,14 @@ namespace TH3DPrintBot.Commands
         {
             if (string.IsNullOrWhiteSpace(roles))
             {
-                await ReplyAsync($"Toggleable roles are:```\n{string.Join("\n", _dataService.RoleMeWhiteList)}```" +
-                                 $"\n`Example: >roleme Fusion360 CR10` will give you both `Fusion360` and `CR10` roles.");
+                await ReplyAsync($"Toggleable roles are:```\n{string.Join("\n", _dataService.RootSettings.lists.roles)}```" +
+                                 $"\n`Example: ~roleme Fusion360 CR10` will give you both `Fusion360` and `CR10` roles.");
                 return;
             }
 
             var roleNames = new List<string>();
 
-            foreach (string role in _dataService.RoleMeWhiteList)
+            foreach (string role in _dataService.RootSettings.lists.roles)
             {
                 Match match = Regex.Match(roles, $@"\b{role}\b", RegexOptions.IgnoreCase);
 

@@ -8,18 +8,18 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-
 using Microsoft.Extensions.DependencyInjection;
+using TH3DPrintBot.src.Services;
+using TH3DPrintBot.Services;
 
 namespace TH3DPrintBot
 {
     public class Program
     {
-        public const char COMMAND_PREFIX = '>';
-
         private CommandService _commands;
         private DiscordSocketClient _client;
         private IServiceProvider _services;
+        private ITimerService _timer;
         private DataService _data;
         private MessageListener _messageListener;
 
@@ -54,12 +54,21 @@ namespace TH3DPrintBot
             _services = new ServiceCollection()
                 .AddSingleton(_client)
                 .AddSingleton(_commands)
+                .AddSingleton<ITimerService, TimerService>()
+                .AddSingleton<MessageListener>()
+                .AddSingleton<DataService>()
+                .AddSingleton<Random>()
+                .AddSingleton<IHelpService, HelpService>()
                 .BuildServiceProvider();
 
-            // Retrieves the bot's token from the config file; effectively exits the program if botToken can't be retrieved.
-            // This is the only setting that has to be retrieved this way so it can start up properly.
-            // Once the guild becomes ready the rest of the settings are fully loaded.
-            if (!_data.Config.TryGetValue("botToken", out string botToken)) return;
+            // Retrieves services that this class uses.
+            _data = _services.GetRequiredService<DataService>();
+            _timer = _services.GetRequiredService<ITimerService>();
+            _messageListener = _services.GetRequiredService<MessageListener>();
+
+            // Constructs services explicitly. Modules are transient so their dependencies would normally be constructed when
+            // the module is initially used e.g. a command is invoked.
+            _services.GetRequiredService<IHelpService>();
 
             // Event subscriptions.
             _client.GuildAvailable += GuildAvailableEventHandler;
@@ -69,7 +78,7 @@ namespace TH3DPrintBot
 
             await InstallCommandsAsync();
 
-            await _client.LoginAsync(TokenType.Bot, botToken);
+            await _client.LoginAsync(TokenType.Bot, _data.RootSettings.program_settings.botToken);
             await _client.StartAsync();
 
             // Subscribes to connect/disconnect after logging in because they would otherwise be raised before needed.
@@ -180,7 +189,7 @@ namespace TH3DPrintBot
             var argPos = 0; // Integer used to track where the prefix ends and the command begins.
 
             // Determines if the message is a command based on if it starts with the prefix character or a mention prefix.
-            if (message.HasCharPrefix(COMMAND_PREFIX, ref argPos) || message.HasMentionPrefix(_client.CurrentUser, ref argPos))
+            if (message.HasCharPrefix(_data.RootSettings.program_settings.commandPrefix[0], ref argPos) || message.HasMentionPrefix(_client.CurrentUser, ref argPos))
                 await ProcessCommandAsync(message, argPos);
 
             Task _ = _messageListener.Listen(messageParam); // Fired and forgotten.
@@ -192,6 +201,7 @@ namespace TH3DPrintBot
         /// <returns>No object or value is returned by this method when it completes.</returns>
         private Task ReadyEventHandler()
         {
+            _timer.Start();
             return Task.CompletedTask;
         }
 
@@ -202,10 +212,12 @@ namespace TH3DPrintBot
         /// <returns>No object or value is returned by this method when it completes.</returns>
         internal async Task UserJoinedEventHandler(SocketGuildUser user)
         {
-            await _messageListener.WelcomeMessageDm(user);
-            await _data.GeneralChannel.SendMessageAsync(
-                $"Welcome {user.Mention} to the Source Engine Discord!\n" +
-                "Over the next 10 minutes while we verify your account, please check out <#195009920414908416> for the rules.");
+            string message = _data.RootSettings.general.welcomeMessage;
+
+            //Add the user's name
+            message = message.Replace("[USER]", user.Mention);
+
+            await _data.GeneralChannel.SendMessageAsync(message);
         }
 
         /// <summary>
@@ -242,10 +254,10 @@ namespace TH3DPrintBot
                     // Retrieves the command's name from the message by finding the first word after the prefix. The string will
                     // be empty if somehow no match is found.
                     string commandName =
-                        Regex.Match(context.Message.Content, COMMAND_PREFIX + @"(\w+)", RegexOptions.IgnoreCase).Groups[1].Value;
+                        Regex.Match(context.Message.Content, _data.RootSettings.program_settings.commandPrefix[0] + @"(\w+)", RegexOptions.IgnoreCase).Groups[1].Value;
 
                     await context.Channel.SendMessageAsync(
-                        $"You provided too {determiner} parameters! Please consult `{COMMAND_PREFIX}help {commandName}`");
+                        $"You provided too {determiner} parameters! Please consult `{_data.RootSettings.program_settings.commandPrefix[0]}help {commandName}`");
 
                     break;
                 case CommandError.ParseFailed:
