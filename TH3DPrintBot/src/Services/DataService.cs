@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Discord.WebSocket;
+using HtmlAgilityPack;
 using Newtonsoft.Json;
 using TH3DPrintBot.Commands.Readers;
 using TH3DPrintBot.Models;
@@ -16,6 +17,7 @@ namespace TH3DPrintBot.src.Services
     public class DataService
     {
         private readonly DiscordSocketClient _client;
+        private readonly Random _random;
 
         public RootSettings RootSettings { get; set; }
 
@@ -27,9 +29,10 @@ namespace TH3DPrintBot.src.Services
         public SocketRole Th3DsupeRole { get; private set; }
         public SocketRole Th3DmodRole { get; private set; }
 
-        public DataService(DiscordSocketClient client)
+        public DataService(DiscordSocketClient client, Random random)
         {
             _client = client;
+            _random = random;
 
             // Some settings are needed before the client connects (e.g. token).
             ReadConfig();
@@ -144,6 +147,74 @@ namespace TH3DPrintBot.src.Services
             LogChannel.SendMessageAsync($"{alert}```{DateTime.Now}\n{title}\n{message}```");
             Console.WriteLine($"{DateTime.Now}: {title}\n{message}\n");
             return Task.CompletedTask;
+        }
+
+        public List<List<string>> SearchKb(string searchTerm)
+        {
+            List<List<string>> listResults = new List<List<string>>();
+
+            const string FAQURL = "https://www.th3dstudio.com/wp-admin/admin-ajax.php?action=epkb-search-kb&epkb_kb_id=1&search_words=";
+            try
+            {
+                //New web client
+                HtmlWeb kbWeb = new HtmlWeb();
+
+                //Let's load the search
+                HtmlDocument kbDocument = kbWeb.Load($"{FAQURL}{searchTerm}");
+
+                //Look at all links that the page has on it
+                foreach (HtmlNode link in kbDocument.DocumentNode.SelectNodes("//a[@href]"))
+                {
+                    List<string> singleResult = new List<string>();
+
+                    //Setup the web request for this specific link found. Format it so we can get data about it.
+                    string finalUrl = link.GetAttributeValue("href", string.Empty).Replace(@"\", "").Replace("\"", "");
+                    HtmlWeb htmlWeb = new HtmlWeb();
+                    HtmlDocument htmlDocument = htmlWeb.Load(finalUrl);
+
+                    //Get page title.
+                    string title = (from x in htmlDocument.DocumentNode.Descendants()
+                                    where x.Name.ToLower() == "title"
+                                    select x.InnerText).FirstOrDefault();
+
+                    //Get article content, this is by ID. Only works for my site.
+                    string description = null;
+                    if (finalUrl.ToLower().Contains("th3dstudio"))
+                    {
+                        description = htmlDocument.GetElementbyId("kb-article-content").InnerText;
+                    }
+
+                    //Only if not Null - Fix the bad characters that get pulled from the web page.
+                    description = description?.Replace(@"&#8211;", "-").Replace("\n", "").Replace(@"&#8220;", "\"").Replace(@"&#8221;", "\"").Replace(@"&#8217;", "'");
+                    title = title?.Replace(@"&#8211;", "-").Replace("\n", "").Replace(" | TopHATTwaffle", "").Replace(@"&#8220;", "\"").Replace(@"&#8221;", "\"").Replace(@"&#8217;", "'");
+
+                    //Limit length if needed
+                    if (description != null && description.Length >= 180)
+                        description = description.Substring(0, 180) + "...";
+
+                    //Get images on the page
+                    List<string> imgs = (from x in htmlDocument.DocumentNode.Descendants()
+                                         where x.Name.ToLower() == "img"
+                                         select x.Attributes["src"].Value).ToList<String>();
+
+                    //Set image to the first non-header image if it exists.
+                    string finalImg = "https://www.th3dstudio.com/wp-content/uploads/2017/08/DiviLogo.fw_-3.png";
+                    if (imgs.Count > 1)
+                        finalImg = imgs[_random.Next(0, imgs.Count)];
+
+                    //Add results to list.
+                    singleResult.Add(title);
+                    singleResult.Add(finalUrl);
+                    singleResult.Add(description);
+                    singleResult.Add(finalImg);
+                    listResults.Add(singleResult);
+                }
+            }
+            catch (Exception)
+            {
+                //Do nothing. The command that called this will handle the no results found message.
+            }
+            return listResults;
         }
     }
 }
