@@ -188,10 +188,6 @@ namespace TH3DPrintBot.src.Services
                     description = description?.Replace(@"&#8211;", "-").Replace("\n", "").Replace(@"&#8220;", "\"").Replace(@"&#8221;", "\"").Replace(@"&#8217;", "'");
                     title = title?.Replace(@"&#8211;", "-").Replace("\n", "").Replace(" | TopHATTwaffle", "").Replace(@"&#8220;", "\"").Replace(@"&#8221;", "\"").Replace(@"&#8217;", "'");
 
-                    //Limit length if needed
-                    if (description != null && description.Length >= 180)
-                        description = description.Substring(0, 180) + "...";
-
                     //Get images on the page
                     List<string> imgs = (from x in htmlDocument.DocumentNode.Descendants()
                                          where x.Name.ToLower() == "img"

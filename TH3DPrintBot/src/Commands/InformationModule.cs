@@ -70,12 +70,17 @@ namespace TH3DPrintBot.src.Commands
 
             if (results.Count == 1)
             {
+                string description = results[0][2];
+
+                if (description.Length > 400)
+                    description = description.Substring(0, 400) + "...";
+
                 await ReplyAsync("", embed: new EmbedBuilder()
                 .WithAuthor(results[0][0], _client.Guilds.FirstOrDefault()?.IconUrl, results[0][1])
                 .WithTitle("Click Here")
                 .WithUrl(results[0][1])
                 .WithColor(130, 203, 225)
-                .WithDescription(results[0][2])
+                .WithDescription(description)
                 .WithImageUrl(results[0][3])
                 .Build());
             }
@@ -83,12 +88,17 @@ namespace TH3DPrintBot.src.Commands
             {
                 foreach (var r in results)
                 {
+                    string description = r[2];
+
+                    if (description.Length > 200)
+                        description = description.Substring(0, 200) + "...";
+
                     await ReplyAsync("", embed: new EmbedBuilder()
                         .WithAuthor(r[0])
                         .WithTitle("Click Here")
                         .WithUrl(r[1])
                         .WithColor(130, 203, 225)
-                        .WithDescription(r[2])
+                        .WithDescription(description)
                         .WithThumbnailUrl(r[3])
                         .Build());
                 }
