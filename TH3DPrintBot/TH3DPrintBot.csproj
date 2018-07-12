@@ -144,9 +144,13 @@
       <Private>True</Private>
       <Private>True</Private>
     </Reference>
+    <Reference Include="WooCommerce.NET, Version=0.7.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\WooCommerceNET.0.7.5\lib\netstandard2.0\WooCommerce.NET.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="src\Commands\HelpModule.cs" />
+    <Compile Include="src\Commands\InformationModule.cs" />
     <Compile Include="src\Commands\Preconditions\RequireBoundariesAttribute.cs" />
     <Compile Include="src\Commands\Preconditions\RequireRoleAttribute.cs" />
     <Compile Include="src\Commands\Readers\ChannelTypeReader.cs" />
@@ -166,6 +170,7 @@
     <Compile Include="src\Services\ITimerService.cs" />
     <Compile Include="src\Services\MessageListener.cs" />
     <Compile Include="src\Services\TimesrService.cs" />
+    <Compile Include="src\Services\WooCommerce\WooCommerce.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

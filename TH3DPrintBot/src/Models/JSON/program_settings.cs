@@ -33,5 +33,13 @@ namespace TH3DPrintBot.src.Models.JSON
         [DefaultValue(60)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public int timerUpdateInterval { get; set; }
+
+        [DefaultValue("CHANGEME")]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public string wooCommerceKey { get; set; }
+
+        [DefaultValue("CHANGEME")]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public string wooCommerceSecret { get; set; }
     }
 }

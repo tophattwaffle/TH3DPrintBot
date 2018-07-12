@@ -10,6 +10,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using TH3DPrintBot.src.Services;
+using TH3DPrintBot.src.Services.WooCommerce;
 using TH3DPrintBot.Services;
 
 namespace TH3DPrintBot
@@ -57,6 +58,7 @@ namespace TH3DPrintBot
                 .AddSingleton<ITimerService, TimerService>()
                 .AddSingleton<MessageListener>()
                 .AddSingleton<DataService>()
+                .AddSingleton<WooCommerce>()
                 .AddSingleton<Random>()
                 .AddSingleton<IHelpService, HelpService>()
                 .BuildServiceProvider();
@@ -69,6 +71,7 @@ namespace TH3DPrintBot
             // Constructs services explicitly. Modules are transient so their dependencies would normally be constructed when
             // the module is initially used e.g. a command is invoked.
             _services.GetRequiredService<IHelpService>();
+            _services.GetRequiredService<WooCommerce>();
 
             // Event subscriptions.
             _client.GuildAvailable += GuildAvailableEventHandler;
