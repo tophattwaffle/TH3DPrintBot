@@ -120,7 +120,7 @@ namespace TH3DPrintBot.src.Commands
                 }
 
                 await ReplyAsync("", embed: new EmbedBuilder()
-                    .WithAuthor("Knowledge Base Search Results", _client.Guilds.FirstOrDefault()?.IconUrl, "https://www.th3dstudio.com/knowledgebase/" + search)
+                    .WithAuthor("Knowledge Base Search Results", _client.Guilds.FirstOrDefault()?.IconUrl, "https://www.th3dstudio.com/knowledgebase/")
                     .WithUrl("https://www.th3dstudio.com/knowledgebase/")
                     .WithDescription(reply)
                     .WithColor(130, 203, 225)
@@ -219,9 +219,8 @@ namespace TH3DPrintBot.src.Commands
                 }
 
                 await ReplyAsync("", embed: new EmbedBuilder()
-                    .WithAuthor("Product Search Results", _client.Guilds.FirstOrDefault()?.IconUrl, "https://www.th3dstudio.com/?s=" + search)
-                    .WithTitle("Click Here")
-                    .WithUrl("https://www.th3dstudio.com/?s=" + search)
+                    .WithAuthor("View All Products", _client.Guilds.FirstOrDefault()?.IconUrl, "https://www.th3dstudio.com/shop/")
+                    .WithUrl("https://www.th3dstudio.com/shop/")
                     .WithDescription(reply)
                     .WithColor(130, 203, 225)
                     .WithThumbnailUrl(_client.Guilds.FirstOrDefault()?.IconUrl)
