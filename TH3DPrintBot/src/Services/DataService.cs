@@ -212,5 +212,20 @@ namespace TH3DPrintBot.src.Services
             }
             return listResults;
         }
+
+        public string GetRandomImgFromUrl(string inUrl)
+        {
+            //New web client
+            HtmlWeb htmlWeb = new HtmlWeb();
+
+            //Load page
+            HtmlDocument htmlDocument = htmlWeb.Load(inUrl);
+
+            //Add each image to a list
+            List<string> validImg = htmlDocument.DocumentNode.SelectNodes("//a[@href]").Select(link =>
+                link.GetAttributeValue("href", string.Empty).Replace(@"\", "").Replace("\"", "")).Where(Path.HasExtension).ToList();
+
+            return inUrl + validImg[(_random.Next(0, validImg.Count))];
+        }
     }
 }

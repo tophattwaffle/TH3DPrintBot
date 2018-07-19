@@ -41,5 +41,9 @@ namespace TH3DPrintBot.src.Models.JSON
         [DefaultValue("CHANGEME")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public string wooCommerceSecret { get; set; }
+
+        [DefaultValue("CHANGEME")]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public string catFactsPath { get; set; }
     }
 }

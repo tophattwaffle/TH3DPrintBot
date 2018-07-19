@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -230,6 +231,42 @@ namespace TH3DPrintBot.src.Commands
 
             if (!Context.IsPrivate)
                 await wait.DeleteAsync();
+        }
+
+        [Command("CatFact", RunMode = RunMode.Async)]
+        [Summary("Provides a cat fact!")]
+        [Remarks("Ever want to know more about cats? Now you can.")]
+        [Alias("gimme a cat fact", "hit me with a cat fact", "hit a nigga with a cat fact", "cat fact", "CatFacts", "cat facts")]
+        public async Task CatFactAsync()
+        {
+            var catFact = "Did you know cats have big bushy tails?";
+            var name = "Cat Fact 0";
+
+            // Gets a fact from the file.
+            if (File.Exists(_dataService.RootSettings.program_settings.catFactsPath))
+            {
+                string[] allLines = File.ReadAllLines(_dataService.RootSettings.program_settings.catFactsPath);
+                int lineNumber = _random.Next(0, allLines.Length);
+                catFact = allLines[lineNumber];
+
+                // Splits the name and the fact in the selected line.
+                Match match = Regex.Match(catFact, @"^\w+ Fact \d*", RegexOptions.IgnoreCase);
+                name = match.Value;
+                catFact = catFact.Substring(match.Length).Trim();
+            }
+
+            var embed = new EmbedBuilder
+            {
+                ThumbnailUrl = _dataService.GetRandomImgFromUrl("https://content.tophattwaffle.com/BotHATTwaffle/catfacts/"),
+                Color = new Color(230, 235, 240)
+            };
+
+            embed.WithAuthor("CAT FACTS!", Context.Message.Author.GetAvatarUrl());
+            embed.WithFooter("This was cat facts, you cannot unsubscribe.");
+            embed.AddField(name, catFact);
+
+            await _dataService.ChannelLog($"{Context.Message.Author.Username.ToUpper()} JUST GOT HIT WITH A CAT FACT");
+            await ReplyAsync(string.Empty, false, embed.Build());
         }
     }
 }
