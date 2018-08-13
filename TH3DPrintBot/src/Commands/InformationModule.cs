@@ -62,7 +62,7 @@ namespace TH3DPrintBot.src.Commands
             }
 
             //Limit results for GCODE specific searches, we know what we want.
-            if (searchTerm.ToUpper()[0] == 'M' || searchTerm.ToUpper()[0] == 'G')
+            if (Char.IsDigit(searchTerm[1]) && (searchTerm.ToUpper()[0] == 'M' || searchTerm.ToUpper()[0] == 'G'))
                 results.RemoveRange(1, results.Count - 1);
 
             if (results.Count == 1)
