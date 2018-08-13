@@ -31,6 +31,104 @@ namespace TH3DPrintBot.src.Commands
             _wooCommerce = wooCommerce;
         }
 
+        [Command("gcode", RunMode = RunMode.Async)]
+        [Summary("Gets information on gcode commands.")]
+        [Remarks("Searches the Marlin website's documentation on gcode commands.")]
+        [Alias("gc")]
+        public async Task GcodeAsync([Remainder] string searchTerm)
+        {
+            if (searchTerm.Length < 2)
+            {
+                await ReplyAsync("Searching GCode requires at least 2 characters or more in the search term. Please try again.");
+                return;
+            }
+
+            IUserMessage wait = await ReplyAsync(
+                $":eyes: Searching for **{searchTerm}** in the GCode Docs. This may take a moment depending on the results! :eyes:");
+
+            List<List<string>> results = _dataService.SearchGcode(searchTerm); // Performs a search.
+
+            // Notifies the user of a lack of search results.
+            if (!results.Any())
+            {
+                results.Add(
+                    new List<string>
+                    {
+                        "Try a different search term",
+                        "http://marlinfw.org/meta/gcode/",
+                        "I could not locate anything for the search term you provided. Please try a different search term.",
+                        null
+                    });
+            }
+
+            //Limit results for GCODE specific searches, we know what we want.
+            if (searchTerm.ToUpper()[0] == 'M' || searchTerm.ToUpper()[0] == 'G')
+                results.RemoveRange(1, results.Count - 1);
+
+            if (results.Count == 1)
+            {
+                string description = results[0][2];
+
+                if (description.Length > 400)
+                    description = description.Substring(0, 400) + "...";
+
+                await ReplyAsync("", embed: new EmbedBuilder()
+                .WithAuthor(results[0][0], _client.Guilds.FirstOrDefault()?.IconUrl, results[0][1])
+                .WithTitle("Click Here")
+                .WithUrl(results[0][1])
+                .WithColor(130, 203, 225)
+                .WithDescription(description)
+                .Build());
+            }
+            else if (results.Count < 4)
+            {
+                foreach (var r in results)
+                {
+                    string description = r[2];
+
+                    if (description.Length > 200)
+                        description = description.Substring(0, 200) + "...";
+
+                    await ReplyAsync("", embed: new EmbedBuilder()
+                        .WithAuthor(r[0])
+                        .WithTitle("Click Here")
+                        .WithUrl(r[1])
+                        .WithColor(130, 203, 225)
+                        .WithDescription(description)
+                        .WithThumbnailUrl(_client.Guilds.FirstOrDefault()?.IconUrl)
+                        .Build());
+                }
+            }
+            else
+            {
+                string reply = string.Empty;
+
+                int count = 1;
+
+                foreach (var r in results)
+                {
+                    if (reply.Length > 1800)
+                        break;
+
+                    reply = $"{reply}{count}. [{r[0]}]({r[1]})\n\n";
+
+                    count++;
+                }
+
+                await ReplyAsync("", embed: new EmbedBuilder()
+                    .WithAuthor("GCODE Search Results", _client.Guilds.FirstOrDefault()?.IconUrl, "http://marlinfw.org/meta/gcode/")
+                    .WithUrl("https://www.th3dstudio.com/knowledgebase/")
+                    .WithDescription(reply)
+                    .WithColor(130, 203, 225)
+                    .WithThumbnailUrl(_client.Guilds.FirstOrDefault()?.IconUrl)
+                    .WithFooter("Marlin Rocks!")
+                    .Build());
+            }
+
+            if (!Context.IsPrivate)
+                await wait.DeleteAsync();
+        }
+
         [Command("KB", RunMode = RunMode.Async)]
         [Summary("Gets information on in the knowledge base.")]
         [Remarks("You can limit results to get more information on a specific KB. You can do this by putting the limit before " +

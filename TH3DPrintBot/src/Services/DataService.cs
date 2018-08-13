@@ -213,6 +213,54 @@ namespace TH3DPrintBot.src.Services
             return listResults;
         }
 
+        public List<List<string>> SearchGcode(string searchTerm)
+        {
+            List<List<string>> listResults = new List<List<string>>();
+
+			const string GCODEURL = "http://marlinfw.org/meta/gcode/";
+            const string DOCURL = "http://marlinfw.org";
+			try
+            {
+                //New web client
+                HtmlWeb kbWeb = new HtmlWeb();
+
+                //Let's load the search
+                HtmlDocument kbDocument = kbWeb.Load(GCODEURL);
+
+                var div = kbDocument.DocumentNode.SelectSingleNode("//div[@class='tocify gcode']");
+                var links = div.Descendants("a").ToList();
+
+                foreach (HtmlNode link in links.Where(l => l.InnerText.ToUpper().Contains(searchTerm.ToUpper())))
+                {
+
+                    List<string> singleResult = new List<string>();
+
+                    //Setup the web request for this specific link found. Format it so we can get data about it.
+                    string finalUrl = DOCURL + link.GetAttributeValue("href", string.Empty).Replace(@"\", "").Replace("\"", "");
+
+                    HtmlWeb htmlWeb = new HtmlWeb();
+                    HtmlDocument htmlDocument = htmlWeb.Load(finalUrl);
+
+                    //Get article content
+                    string description = htmlDocument.DocumentNode.SelectSingleNode("//div[@class='row long']").InnerText.Trim();
+
+                   //Only if not Null - Fix the bad characters that get pulled from the web page.
+                    description = description?.Replace(@"&#8211;", "-").Replace("\n", "").Replace(@"&#8220;", "\"").Replace(@"&#8221;", "\"").Replace(@"&#8217;", "'");
+
+                    //Add results to list.
+                    singleResult.Add(link.InnerText);
+                    singleResult.Add(finalUrl);
+                    singleResult.Add(description);
+                    listResults.Add(singleResult);                    
+                }
+            }
+            catch (Exception)
+            {
+                //Do nothing. The command that called this will handle the no results found message.
+            }
+            return listResults;
+        }
+
         public string GetRandomImgFromUrl(string inUrl)
         {
             //New web client
