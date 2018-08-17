@@ -12,5 +12,6 @@ namespace TH3DPrintBot.src.Models
         public program_settings program_settings { get; set; }
         public general general { get; set; }
         public lists lists { get; set; }
+        public autoReplies autoReplies { get; set; }
     }
 }
